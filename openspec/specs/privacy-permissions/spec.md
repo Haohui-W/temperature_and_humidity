@@ -1,0 +1,71 @@
+# privacy-permissions Specification
+
+## Purpose
+TBD - created by archiving change build-cdc-temp-humidity-mvp. Update Purpose after archive.
+## Requirements
+### Requirement: 麦克风权限说明
+系统 SHALL 在请求麦克风权限前说明权限用途、音频处理范围和拒绝后的降级行为。
+
+#### Scenario: 首次请求麦克风权限
+- **WHEN** 用户首次启动需要声学估算的测量
+- **THEN** 系统 SHALL 展示麦克风权限用途说明，并在用户确认后请求系统权限
+
+#### Scenario: 用户拒绝麦克风权限
+- **WHEN** 用户拒绝麦克风权限
+- **THEN** 系统 SHALL 进入不依赖麦克风的降级测量路径，并说明该模式的耗时或置信度限制
+
+### Requirement: 音频本地处理
+系统 SHALL 将温湿度测量所需音频限制为本地内存处理，并 SHALL NOT 上传、持久化或外部分享原始测量音频。
+
+#### Scenario: 测量音频采集完成
+- **WHEN** 系统完成声学估算或声学估算失败
+- **THEN** 系统 SHALL 清理测量音频缓冲区，并释放相关音频采集资源
+
+#### Scenario: 保存报告
+- **WHEN** 系统保存本地报告
+- **THEN** 系统 SHALL NOT 将原始音频或可还原原始音频的数据写入本地报告
+
+### Requirement: 点位语音识别隐私边界
+系统 SHALL 区分温湿度测量音频和点位语音识别输入，并在使用系统语音识别能力时向用户说明该能力可能由系统服务处理。
+
+#### Scenario: 用户使用点位语音识别
+- **WHEN** 用户选择通过语音识别录入点位名称
+- **THEN** 系统 SHALL 告知该输入用于点位名称识别，并允许用户改用手动输入
+
+#### Scenario: 用户不使用点位语音识别
+- **WHEN** 用户选择手动输入点位名称
+- **THEN** 系统 SHALL NOT 启动点位语音识别流程
+
+### Requirement: 本地报告数据最小化
+系统 SHALL 仅保存报告所需字段，并避免保存不必要的原始传感器数据或音频数据。
+
+#### Scenario: 保存报告字段
+- **WHEN** 用户保存报告
+- **THEN** 系统 SHALL 仅保存点位、温度、湿度、测量时间、置信度、质控说明、复制状态和必要的来源摘要
+
+#### Scenario: 调试信息处理
+- **WHEN** 系统记录测量失败或质控失败原因
+- **THEN** 系统 SHALL 仅保存错误类别和摘要，SHALL NOT 保存原始音频或完整传感器采样序列
+
+### Requirement: 本地报告加密
+系统 SHALL 对本地保存的报告敏感字段进行加密，并使用 Android Keystore 或等效平台能力保护加密密钥。
+
+#### Scenario: 写入本地报告
+- **WHEN** 系统将报告写入本地存储
+- **THEN** 系统 SHALL 加密点位名称和温湿度报告字段
+
+#### Scenario: 读取本地报告
+- **WHEN** 用户查看报告历史或报告详情
+- **THEN** 系统 SHALL 在应用内解密并展示报告字段
+
+### Requirement: 权限和降级状态可见
+系统 SHALL 在测量和报告流程中展示影响结果的权限、输入缺失和降级状态。
+
+#### Scenario: 权限导致降级
+- **WHEN** 麦克风权限被拒绝或撤销
+- **THEN** 系统 SHALL 在测量界面和结果界面展示降级原因
+
+#### Scenario: 设备输入导致降级
+- **WHEN** 所需设备输入不可用
+- **THEN** 系统 SHALL 在结果中展示缺失输入和对应的置信度影响
+

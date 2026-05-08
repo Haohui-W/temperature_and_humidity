@@ -1,11 +1,26 @@
 <resources>
-    <string name="app_name">temperature_and_humidity</string>
-    <string name="action_settings">Settings</string>
+    <string name="app_name">疾控温湿度填报助手</string>
+    <string name="action_settings">设置</string>
     <!-- Strings used for fragments for navigation -->
-    <string name="first_fragment_label">First Fragment</string>
-    <string name="second_fragment_label">Second Fragment</string>
-    <string name="next">Next</string>
-    <string name="previous">Previous</string>
+    <string name="first_fragment_label">温湿度测量</string>
+    <string name="second_fragment_label">报告历史</string>
+    <string name="next">下一步</string>
+    <string name="previous">返回测量</string>
+    <string name="measurement_title">现场温湿度测量</string>
+    <string name="status_idle">待测量。点击一键测量开始。</string>
+    <string name="start_measurement">一键测量</string>
+    <string name="temperature_placeholder">--.-℃</string>
+    <string name="humidity_placeholder">--%RH</string>
+    <string name="confidence_placeholder">置信度：--</string>
+    <string name="source_placeholder">来源：--</string>
+    <string name="quality_placeholder">质控：--</string>
+    <string name="point_name_hint">点位名称</string>
+    <string name="voice_point">语音点位</string>
+    <string name="save_report">保存报告</string>
+    <string name="report_history">报告历史</string>
+    <string name="history_empty">暂无本地报告。</string>
+    <string name="copy_preview_empty">选择或复制最近一条报告后，这里会显示待复制文本。</string>
+    <string name="copy_latest">复制最近一条</string>
 
     <string name="lorem_ipsum">
         Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam in scelerisque sem. Mauris
