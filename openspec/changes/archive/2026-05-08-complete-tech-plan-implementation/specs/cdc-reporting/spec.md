@@ -1,33 +1,4 @@
-# cdc-reporting Specification
-
-## Purpose
-TBD - created by archiving change build-cdc-temp-humidity-mvp. Update Purpose after archive.
-## Requirements
-### Requirement: 点位名称采集与修正
-系统 SHALL 支持通过语音识别或手动输入采集点位名称，并在保存报告前允许用户修正点位名称。
-
-#### Scenario: 语音识别点位成功
-- **WHEN** 用户选择语音录入点位且系统识别出点位名称
-- **THEN** 系统 SHALL 将识别结果填入点位字段，并允许用户编辑
-
-#### Scenario: 语音识别不可用
-- **WHEN** 语音识别能力不可用、识别失败或用户不授权相关权限
-- **THEN** 系统 SHALL 提供手动输入点位名称的路径
-
-#### Scenario: 保存前校验点位
-- **WHEN** 用户尝试保存报告但点位名称为空
-- **THEN** 系统 SHALL 阻止保存并提示用户填写点位名称
-
-### Requirement: 报告草稿创建
-系统 SHALL 根据通过质控的测量结果和用户确认的点位名称创建本地报告草稿，并在气压可用时包含气压。
-
-#### Scenario: 创建报告草稿
-- **WHEN** 用户确认点位名称和测量结果
-- **THEN** 系统 SHALL 创建包含点位、温度、湿度、可用时的气压、测量时间、置信度和质控说明的报告草稿
-
-#### Scenario: 拒绝异常测量结果
-- **WHEN** 测量结果未通过质控或缺少温度/湿度值
-- **THEN** 系统 SHALL 阻止创建报告草稿
+## MODIFIED Requirements
 
 ### Requirement: 本地报告保存
 系统 SHALL 将用户确认的报告保存到本地 SQLite 存储，并对敏感报告 payload 加密；系统 SHALL 维护报告状态和更新时间，当气压可用时，系统 SHALL 保存气压。
@@ -47,21 +18,6 @@ TBD - created by archiving change build-cdc-temp-humidity-mvp. Update Purpose af
 #### Scenario: 无旧数据迁移
 - **WHEN** App 使用 SQLite 作为本地报告存储
 - **THEN** 系统 SHALL 直接读写 SQLite，并 SHALL NOT 实现旧 SharedPreferences 报告迁移路径
-
-### Requirement: 待复制结果生成
-系统 SHALL 为已保存报告生成格式稳定、可复制到疾控填报系统的文本结果，并包含气压字段。
-
-#### Scenario: 生成包含气压的复制文本
-- **WHEN** 用户查看包含气压的已保存报告
-- **THEN** 系统 SHALL 生成包含点位、温度、湿度、气压、测量时间和必要质控说明的复制文本
-
-#### Scenario: 生成无气压的复制文本
-- **WHEN** 用户查看不包含气压的已保存报告
-- **THEN** 系统 SHALL 在复制文本中展示气压为不可用状态
-
-#### Scenario: 用户复制结果
-- **WHEN** 用户点击复制操作
-- **THEN** 系统 SHALL 将复制文本写入系统剪贴板，并将报告状态更新为“已复制”
 
 ### Requirement: 报告历史
 系统 SHALL 提供本地 SQLite 报告历史列表，便于用户查看最近保存、已复制和带有网络演示记录的报告。
@@ -88,4 +44,3 @@ TBD - created by archiving change build-cdc-temp-humidity-mvp. Update Purpose af
 #### Scenario: 网络演示完成
 - **WHEN** 用户触发 httpbin 网络演示且调用成功
 - **THEN** 系统 SHALL 记录“网络演示成功”，并 SHALL NOT 将报告状态展示为“已提交疾控系统”
-

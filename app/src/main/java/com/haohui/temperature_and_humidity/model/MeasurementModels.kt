@@ -22,10 +22,42 @@ enum class EstimateSource(val label: String) {
 enum class MeasurementErrorReason(val userMessage: String) {
     MICROPHONE_PERMISSION_DENIED("未授权麦克风，已使用热特征降级模式"),
     AUDIO_UNAVAILABLE("设备音频输入不可用，已使用热特征降级模式"),
+    TDOA_UNAVAILABLE("声学 TDOA 未检测到有效双麦延迟，已使用热特征降级模式"),
+    SOUND_SPEED_OUT_OF_RANGE("声学 TDOA 已返回，但反推声速超出空气声速范围，已使用热特征降级模式"),
     THERMAL_INPUT_UNAVAILABLE("热特征输入不可用"),
     LOW_CONFIDENCE("当前环境信号不佳，请重新测量"),
     QUALITY_CHECK_FAILED("测量结果异常，请重新测量"),
     UNKNOWN("测量失败，请重试")
+}
+
+data class ModelMetadata(
+    val modelId: String,
+    val version: String,
+    val calibrated: Boolean,
+    val summary: String
+) {
+    val displaySummary: String
+        get() = if (calibrated) {
+            "$summary（$version，已标定）"
+        } else {
+            "$summary（$version）"
+        }
+}
+
+data class MeasurementDiagnostics(
+    val isDemoEstimate: Boolean = false,
+    val modelSummary: String = "",
+    val deviceSummary: String = "",
+    val tdoaSummary: String = "",
+    val soundSpeedMetersPerSecond: Double? = null,
+    val inputSummary: String = ""
+) {
+    fun compactSummary(): String = listOf(
+        modelSummary,
+        deviceSummary,
+        tdoaSummary,
+        inputSummary
+    ).filter { it.isNotBlank() }.distinct().joinToString("；")
 }
 
 data class Estimate(
@@ -35,7 +67,9 @@ data class Estimate(
     val confidence: Double,
     val inputQuality: Double,
     val sourceSummary: String,
-    val unavailableReason: MeasurementErrorReason? = null
+    val unavailableReason: MeasurementErrorReason? = null,
+    val degradationReason: MeasurementErrorReason? = null,
+    val diagnostics: MeasurementDiagnostics = MeasurementDiagnostics()
 ) {
     val isAvailable: Boolean
         get() = unavailableReason == null
@@ -66,7 +100,8 @@ data class MeasurementResult(
     val quality: QualityResult,
     val measuredAtMillis: Long,
     val isDegraded: Boolean,
-    val degradationReason: MeasurementErrorReason? = null
+    val degradationReason: MeasurementErrorReason? = null,
+    val diagnostics: MeasurementDiagnostics = MeasurementDiagnostics()
 ) {
     fun displayTemperature(): String = "%.1f℃".format(temperatureCelsius)
 

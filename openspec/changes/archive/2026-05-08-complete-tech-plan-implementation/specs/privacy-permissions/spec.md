@@ -1,8 +1,5 @@
-# privacy-permissions Specification
+## MODIFIED Requirements
 
-## Purpose
-TBD - created by archiving change build-cdc-temp-humidity-mvp. Update Purpose after archive.
-## Requirements
 ### Requirement: 麦克风权限说明
 系统 SHALL 在请求麦克风权限前说明权限用途、音频处理范围和拒绝后的降级行为。
 
@@ -29,17 +26,6 @@ TBD - created by archiving change build-cdc-temp-humidity-mvp. Update Purpose af
 - **WHEN** 系统构造 httpbin 网络演示 payload
 - **THEN** 系统 SHALL NOT 将原始测量音频或点位语音识别音频写入 payload
 
-### Requirement: 点位语音识别隐私边界
-系统 SHALL 区分温湿度测量音频和点位语音识别输入，并在使用系统语音识别能力时向用户说明该能力可能由系统服务处理。
-
-#### Scenario: 用户使用点位语音识别
-- **WHEN** 用户选择通过语音识别录入点位名称
-- **THEN** 系统 SHALL 告知该输入用于点位名称识别，并允许用户改用手动输入
-
-#### Scenario: 用户不使用点位语音识别
-- **WHEN** 用户选择手动输入点位名称
-- **THEN** 系统 SHALL NOT 启动点位语音识别流程
-
 ### Requirement: 本地报告数据最小化
 系统 SHALL 仅保存报告、网络演示和审计展示所需字段，并避免保存不必要的原始传感器数据或音频数据。
 
@@ -62,16 +48,7 @@ TBD - created by archiving change build-cdc-temp-humidity-mvp. Update Purpose af
 - **WHEN** 用户查看报告历史或报告详情
 - **THEN** 系统 SHALL 在应用内解密并展示报告字段
 
-### Requirement: 权限和降级状态可见
-系统 SHALL 在测量和报告流程中展示影响结果的权限、输入缺失和降级状态。
-
-#### Scenario: 权限导致降级
-- **WHEN** 麦克风权限被拒绝或撤销
-- **THEN** 系统 SHALL 在测量界面和结果界面展示降级原因
-
-#### Scenario: 设备输入导致降级
-- **WHEN** 所需设备输入不可用
-- **THEN** 系统 SHALL 在结果中展示缺失输入和对应的置信度影响
+## ADDED Requirements
 
 ### Requirement: 网络演示隐私边界
 系统 SHALL 在用户触发网络演示前说明该调用使用公开测试端点，且不是疾控系统提交。
@@ -83,4 +60,3 @@ TBD - created by archiving change build-cdc-temp-humidity-mvp. Update Purpose af
 #### Scenario: 发送网络演示请求
 - **WHEN** 系统发送 httpbin 网络演示请求
 - **THEN** 系统 SHALL NOT 发送明文点位名称、原始音频、点位语音音频或真实疾控 token
-

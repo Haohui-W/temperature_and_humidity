@@ -16,9 +16,12 @@ class MeasurementService(
 
     fun runMeasurement(allowAcoustic: Boolean): MeasurementSessionState {
         state = MeasurementSessionState.Running(MeasurementPhase.CHECKING_PERMISSION, "正在检查权限")
+        state = MeasurementSessionState.Running(MeasurementPhase.COLLECTING_SIGNALS, "正在读取气压")
+        val pressureHpa = pressureReader.readValidPressureHpa()
+
         val acoustic = if (allowAcoustic) {
             state = MeasurementSessionState.Running(MeasurementPhase.COLLECTING_SIGNALS, "正在采集声学信号")
-            acousticEstimator.estimate()
+            acousticEstimator.estimate(pressureHpa)
         } else {
             null
         }
@@ -29,9 +32,6 @@ class MeasurementService(
             MeasurementSessionState.Running(MeasurementPhase.THERMAL_ONLY_DELAY, "未授权麦克风，使用热特征模式")
         }
         val thermal = thermalEstimator.estimate()
-
-        state = MeasurementSessionState.Running(MeasurementPhase.COLLECTING_SIGNALS, "正在读取气压")
-        val pressureHpa = pressureReader.readValidPressureHpa()
 
         state = MeasurementSessionState.Running(MeasurementPhase.ESTIMATING, "正在估算温湿度")
         val outcome = fusionEngine.fuse(acoustic, thermal, clock(), pressureHpa)
@@ -59,7 +59,7 @@ class MeasurementService(
 class UnavailableAcousticEstimator(
     private val reason: MeasurementErrorReason = MeasurementErrorReason.AUDIO_UNAVAILABLE
 ) : AcousticEstimator {
-    override fun estimate() = com.haohui.temperature_and_humidity.model.Estimate(
+    override fun estimate(pressureHpa: Double?) = com.haohui.temperature_and_humidity.model.Estimate(
         source = com.haohui.temperature_and_humidity.model.EstimateSource.ACOUSTIC,
         temperatureCelsius = 0.0,
         humidityRh = 0.0,

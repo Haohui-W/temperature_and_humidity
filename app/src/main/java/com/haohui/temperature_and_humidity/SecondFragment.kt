@@ -13,10 +13,13 @@ import com.google.android.material.snackbar.Snackbar
 import com.haohui.temperature_and_humidity.databinding.FragmentSecondBinding
 import com.haohui.temperature_and_humidity.model.ReportRecord
 import com.haohui.temperature_and_humidity.reporting.CopyTextBuilder
+import com.haohui.temperature_and_humidity.reporting.NetworkDemoClient
 import com.haohui.temperature_and_humidity.storage.LocalReportStore
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 
 class SecondFragment : Fragment() {
 
@@ -24,6 +27,8 @@ class SecondFragment : Fragment() {
     private val binding get() = _binding!!
     private lateinit var reportStore: LocalReportStore
     private val copyTextBuilder = CopyTextBuilder()
+    private val networkDemoClient = NetworkDemoClient()
+    private val executor: ExecutorService = Executors.newSingleThreadExecutor()
     private val dateFormat = SimpleDateFormat("MM-dd HH:mm", Locale.CHINA)
     private var latestRecord: ReportRecord? = null
 
@@ -47,6 +52,9 @@ class SecondFragment : Fragment() {
         binding.buttonCopyLatest.setOnClickListener {
             copyLatestReport()
         }
+        binding.buttonNetworkDemo.setOnClickListener {
+            confirmNetworkDemo()
+        }
         renderHistory()
     }
 
@@ -57,16 +65,21 @@ class SecondFragment : Fragment() {
             binding.textHistory.setText(R.string.history_empty)
             binding.textCopyPreview.setText(R.string.copy_preview_empty)
             binding.buttonCopyLatest.isEnabled = false
+            binding.buttonNetworkDemo.isEnabled = false
+            binding.textNetworkDemo.setText(R.string.network_demo_empty)
             return
         }
 
         binding.buttonCopyLatest.isEnabled = true
+        binding.buttonNetworkDemo.isEnabled = true
         binding.textHistory.text = records.joinToString("\n\n") { record ->
             val time = dateFormat.format(Date(record.createdAtMillis))
-            "${record.pointName}  ${record.displayTemperature()}  ${record.displayHumidity()}  ${record.displayPressure()}\n$time  ${record.status.label}"
+            val network = record.networkDemoSummary.ifBlank { record.networkDemoStatus.label }
+            "${record.pointName}  ${record.displayTemperature()}  ${record.displayHumidity()}  ${record.displayPressure()}\n$time  ${record.status.label}  $network"
         }
         latestRecord?.let {
             binding.textCopyPreview.text = copyTextBuilder.build(it).content
+            binding.textNetworkDemo.text = it.networkDemoSummary.ifBlank { getString(R.string.network_demo_empty) }
         }
     }
 
@@ -80,8 +93,38 @@ class SecondFragment : Fragment() {
         renderHistory()
     }
 
+    private fun confirmNetworkDemo() {
+        val record = latestRecord ?: return
+        androidx.appcompat.app.AlertDialog.Builder(requireContext())
+            .setTitle("网络演示")
+            .setMessage("将向 httpbin 发送温湿度和气压演示 payload，不发送明文点位、音频或真实 token；这不代表提交疾控系统。")
+            .setPositiveButton("开始演示") { _, _ ->
+                runNetworkDemo(record)
+            }
+            .setNegativeButton("取消", null)
+            .show()
+    }
+
+    private fun runNetworkDemo(record: ReportRecord) {
+        binding.buttonNetworkDemo.isEnabled = false
+        binding.textNetworkDemo.text = "网络演示处理中..."
+        executor.execute {
+            val log = networkDemoClient.postReport(record)
+            reportStore.saveNetworkDemoLog(log)
+            requireActivity().runOnUiThread {
+                Snackbar.make(binding.root, log.displaySummary(), Snackbar.LENGTH_LONG).show()
+                renderHistory()
+            }
+        }
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        executor.shutdownNow()
     }
 }

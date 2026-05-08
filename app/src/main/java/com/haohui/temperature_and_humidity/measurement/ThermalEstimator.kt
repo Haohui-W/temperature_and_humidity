@@ -14,8 +14,11 @@ interface ThermalEstimator {
 }
 
 class AndroidThermalEstimator(
-    private val context: Context
+    private val context: Context,
+    private val thermalModel: ThermalDemoModel = ThermalDemoModel()
 ) : ThermalEstimator {
+    private var lastCpuLoad: Double? = null
+
     override fun estimate(): Estimate {
         val batteryTemperature = readBatteryTemperature()
         val cpuTemperature = readCpuTemperature()
@@ -33,30 +36,41 @@ class AndroidThermalEstimator(
             )
         }
 
-        val baseTemperature = listOfNotNull(batteryTemperature, cpuTemperature).average()
-        val loadAdjustment = ((cpuLoad ?: 20.0) - 20.0) * 0.03
-        val estimatedTemperature = (baseTemperature - loadAdjustment).coerceIn(-10.0, 50.0)
-        val estimatedHumidity = (65.0 - (estimatedTemperature - 20.0) * 1.2).coerceIn(0.0, 100.0)
-
-        val availableInputs = listOfNotNull(batteryTemperature, cpuTemperature, cpuLoad).size
-        val confidence = when (availableInputs) {
-            3 -> 0.72
-            2 -> 0.55
-            else -> 0.35
-        }
-        val summary = buildList {
+        val output = thermalModel.predict(
+            ThermalModelInput(
+                batteryTemperatureCelsius = batteryTemperature,
+                cpuTemperatureCelsius = cpuTemperature,
+                cpuLoadPercent = cpuLoad,
+                previousCpuLoadPercent = lastCpuLoad
+            )
+        ) ?: return Estimate(
+            source = EstimateSource.THERMAL,
+            temperatureCelsius = 0.0,
+            humidityRh = 0.0,
+            confidence = 0.0,
+            inputQuality = 0.0,
+            sourceSummary = "热特征输入不可用",
+            unavailableReason = MeasurementErrorReason.THERMAL_INPUT_UNAVAILABLE
+        )
+        lastCpuLoad = cpuLoad
+        val inputSummary = buildList {
             add("电池 ${batteryTemperature?.let { "%.1f℃".format(it) } ?: "缺失"}")
             add("CPU ${cpuTemperature?.let { "%.1f℃".format(it) } ?: "缺失"}")
-            add("负载 ${cpuLoad?.let { "%.0f%%".format(it) } ?: "缺失"}")
+            add(cpuLoadSummary(cpuLoad))
         }.joinToString("，")
 
         return Estimate(
             source = EstimateSource.THERMAL,
-            temperatureCelsius = estimatedTemperature,
-            humidityRh = estimatedHumidity,
-            confidence = confidence,
-            inputQuality = confidence,
-            sourceSummary = summary
+            temperatureCelsius = output.temperatureCelsius,
+            humidityRh = output.humidityRh,
+            confidence = output.confidence,
+            inputQuality = output.inputQuality,
+            sourceSummary = "$inputSummary，${output.metadata.displaySummary}",
+            diagnostics = com.haohui.temperature_and_humidity.model.MeasurementDiagnostics(
+                isDemoEstimate = !output.metadata.calibrated,
+                modelSummary = output.metadata.displaySummary,
+                inputSummary = inputSummary
+            )
         )
     }
 
@@ -91,4 +105,8 @@ class AndroidThermalEstimator(
             if (total <= 0.0) null else ((total - idle) / total * 100.0).coerceIn(0.0, 100.0)
         }.getOrNull()
     }
+
+    private fun cpuLoadSummary(cpuLoad: Double?): String = cpuLoad?.let {
+        "负载 %.0f%%".format(it)
+    } ?: "负载缺失（系统限制或读取失败，模型使用默认20%）"
 }

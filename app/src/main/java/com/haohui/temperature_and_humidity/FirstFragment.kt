@@ -140,9 +140,11 @@ class FirstFragment : Fragment() {
         binding.textPressure.text = result.displayPressureValue()
         binding.textConfidence.text = "置信度：${result.displayConfidence()}"
         binding.textSource.text = "来源：${result.sourceSummary}"
-        binding.textQuality.text = "质控：${result.quality.message.ifBlank { "质控通过" }}"
+        val diagnostics = result.diagnostics.compactSummary()
+        binding.textQuality.text = "质控：${result.quality.message.ifBlank { "质控通过" }}\n说明：${if (diagnostics.isBlank()) "未标定演示估算" else diagnostics}"
         val status = if (result.isDegraded) {
-            "测量完成（降级）：${result.degradationReason?.userMessage.orEmpty()}"
+            val fallbackLabel = if (result.sourceSummary.contains("声学兜底")) "，已启用旧版 MVP 声学兜底" else ""
+            "测量完成（降级$fallbackLabel）：${result.degradationReason?.userMessage.orEmpty()}"
         } else {
             "测量完成，可确认点位并保存。"
         }

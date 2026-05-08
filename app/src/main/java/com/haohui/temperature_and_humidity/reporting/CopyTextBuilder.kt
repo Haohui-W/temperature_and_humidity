@@ -19,7 +19,9 @@ class CopyTextBuilder(
             "测量时间：$measuredAt",
             "置信度：${record.displayConfidence()}",
             "来源：${record.sourceSummary}",
-            "质控：${record.qualitySummary}"
+            "质控：${record.qualitySummary}",
+            "估算状态：${if (record.isDemoEstimate) "未标定演示估算" else "已标定"}",
+            "校准摘要：${record.diagnosticsSummary.ifBlank { "无验证证据" }}"
         ).joinToString("\n")
         return CopyText(record.id, content)
     }

@@ -1,18 +1,4 @@
-# environment-measurement Specification
-
-## Purpose
-TBD - created by archiving change build-cdc-temp-humidity-mvp. Update Purpose after archive.
-## Requirements
-### Requirement: 一键测量会话
-系统 SHALL 提供一键发起的环境温湿度测量会话，并在会话中依次完成权限检查、信号采集、估算、融合、质控和结果展示。
-
-#### Scenario: 用户发起测量
-- **WHEN** 用户在测量首页点击“一键测量”
-- **THEN** 系统 SHALL 创建新的测量会话，并展示当前测量状态
-
-#### Scenario: 测量过程中防止重复启动
-- **WHEN** 已有测量会话处于权限检查、采集、估算或质控状态
-- **THEN** 系统 SHALL 禁止再次启动新的测量会话，并保持当前会话状态可见
+## MODIFIED Requirements
 
 ### Requirement: 声学估算
 系统 SHALL 在麦克风权限可用且设备支持所需音频输入时，采集 48kHz、16bit、stereo 的短时音频信号，拆分左右声道，通过 JNI/C++ TDOA 互相关计算时间差，并基于机型麦克风间距、声速、气压和演示模型生成声学温湿度估算结果、声学置信度、输入来源说明和未标定提示。
@@ -100,19 +86,3 @@ TBD - created by archiving change build-cdc-temp-humidity-mvp. Update Purpose af
 #### Scenario: 气压不可用
 - **WHEN** 测量会话生成通过质控的温湿度结果但气压不可用
 - **THEN** 系统 SHALL 保留温湿度结果展示，并 SHALL 将气压展示为不可用状态
-
-### Requirement: 可选气压采集
-系统 SHALL 在一键测量会话中尝试读取设备气压传感器，并将有效气压作为可选测量附加值暴露给结果展示流程。
-
-#### Scenario: 设备气压传感器可用
-- **WHEN** 用户发起一键测量且设备返回有效气压读数
-- **THEN** 系统 SHALL 在测量结果中包含以 hPa 为单位的真实气压读数
-
-#### Scenario: 设备气压传感器不可用
-- **WHEN** 用户发起一键测量但设备没有气压传感器、读数超时或读数无效
-- **THEN** 系统 SHALL 将气压标记为不可用，并 SHALL NOT 因气压缺失导致温湿度测量失败
-
-#### Scenario: 气压读取无需危险权限
-- **WHEN** 系统读取设备气压传感器
-- **THEN** 系统 SHALL NOT 请求新的运行时危险权限
-

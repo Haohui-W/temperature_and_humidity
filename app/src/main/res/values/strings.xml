@@ -39,6 +39,8 @@
     <string name="history_empty">暂无本地报告。</string>
     <string name="copy_preview_empty">选择或复制最近一条报告后，这里会显示待复制文本。</string>
     <string name="copy_latest">复制最近一条</string>
+    <string name="network_demo">网络演示（httpbin）</string>
+    <string name="network_demo_empty">网络演示未触发。该功能只验证网络请求，不代表提交疾控系统。</string>
 
     <string name="lorem_ipsum">
         Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam in scelerisque sem. Mauris

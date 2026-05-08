@@ -48,6 +48,26 @@ class FusionEngineTest {
     }
 
     @Test
+    fun fuse_labelsLegacyAcousticFallbackInSourceSummary() {
+        val acoustic = estimate(
+            EstimateSource.ACOUSTIC,
+            temperature = 22.0,
+            humidity = 58.0,
+            confidence = 0.3,
+            degradationReason = MeasurementErrorReason.SOUND_SPEED_OUT_OF_RANGE
+        )
+        val thermal = estimate(EstimateSource.THERMAL, temperature = 24.0, humidity = 60.0, confidence = 0.6)
+
+        val outcome = engine.fuse(acoustic, thermal, measuredAtMillis = 100L)
+
+        assertTrue(outcome is FusionOutcome.Success)
+        val result = (outcome as FusionOutcome.Success).result
+        assertEquals(true, result.isDegraded)
+        assertEquals(MeasurementErrorReason.SOUND_SPEED_OUT_OF_RANGE, result.degradationReason)
+        assertTrue(result.sourceSummary.contains("声学兜底"))
+    }
+
+    @Test
     fun fuse_preservesPressureWithoutChangingTemperatureHumidityOrConfidence() {
         val acoustic = estimate(EstimateSource.ACOUSTIC, temperature = 20.0, humidity = 50.0, confidence = 0.8)
         val thermal = estimate(EstimateSource.THERMAL, temperature = 30.0, humidity = 70.0, confidence = 0.2)
@@ -74,13 +94,15 @@ class FusionEngineTest {
         source: EstimateSource,
         temperature: Double,
         humidity: Double,
-        confidence: Double
+        confidence: Double,
+        degradationReason: MeasurementErrorReason? = null
     ) = Estimate(
         source = source,
         temperatureCelsius = temperature,
         humidityRh = humidity,
         confidence = confidence,
         inputQuality = confidence,
-        sourceSummary = source.label
+        sourceSummary = source.label,
+        degradationReason = degradationReason
     )
 }

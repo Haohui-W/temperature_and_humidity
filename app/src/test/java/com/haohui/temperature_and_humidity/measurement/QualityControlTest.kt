@@ -1,6 +1,7 @@
 package com.haohui.temperature_and_humidity.measurement
 
 import com.haohui.temperature_and_humidity.model.EstimateSource
+import com.haohui.temperature_and_humidity.model.MeasurementDiagnostics
 import com.haohui.temperature_and_humidity.model.MeasurementErrorReason
 import com.haohui.temperature_and_humidity.model.MeasurementResult
 import com.haohui.temperature_and_humidity.model.QualityResult
@@ -43,10 +44,19 @@ class QualityControlTest {
         assertEquals(MeasurementErrorReason.LOW_CONFIDENCE, result.reason)
     }
 
+    @Test
+    fun evaluate_rejectsImplausibleSoundSpeed() {
+        val result = qualityControl.evaluate(result(soundSpeed = 500.0))
+
+        assertFalse(result.passed)
+        assertEquals(MeasurementErrorReason.QUALITY_CHECK_FAILED, result.reason)
+    }
+
     private fun result(
         temperature: Double = 25.0,
         humidity: Double = 60.0,
-        confidence: Double = 0.8
+        confidence: Double = 0.8,
+        soundSpeed: Double? = null
     ) = MeasurementResult(
         temperatureCelsius = temperature,
         humidityRh = humidity,
@@ -55,6 +65,7 @@ class QualityControlTest {
         sourceSummary = "融合",
         quality = QualityResult(passed = true),
         measuredAtMillis = 100L,
-        isDegraded = false
+        isDegraded = false,
+        diagnostics = MeasurementDiagnostics(soundSpeedMetersPerSecond = soundSpeed)
     )
 }
