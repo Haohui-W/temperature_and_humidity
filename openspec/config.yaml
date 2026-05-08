@@ -1,0 +1,53 @@
+schema: spec-driven
+
+context: |
+  Project: Android app for CDC field staff to estimate and report ambient
+  temperature and humidity at inspection points.
+
+  Product direction:
+  - The source product/technical plan is `docs/技术方案.md`.
+  - The intended workflow is "one-tap measurement": collect local phone signals,
+    estimate temperature/humidity, associate the result with a point name, and
+    support reporting or offline storage.
+  - Planned modules include permission handling, acoustic measurement, thermal
+    feature estimation, multimodal fusion, reporting integration, and encrypted
+    offline storage.
+  - Privacy is a core constraint: audio data must be processed locally, kept only
+    in memory, cleared after processing, and never uploaded.
+
+  Current implementation state:
+  - The app is currently an Android Studio template scaffold, not a working
+    temperature/humidity product yet.
+  - Main code lives under `app/src/main/java/com/haohui/temperature_and_humidity`.
+  - UI is XML-based with AppCompat, Material Components, Navigation, and
+    ViewBinding. There is no Jetpack Compose in the current codebase.
+  - The Gradle config currently uses a single `:app` module with
+    `applicationId`/`namespace` `com.haohui.temperature_and_humidity`.
+  - The build currently targets Android SDK 36.1; local environments may need
+    that SDK installed before builds succeed.
+
+  Engineering conventions:
+  - Prefer small, focused changes that follow the existing Android/Kotlin/XML
+    structure unless a change explicitly proposes a larger architecture update.
+  - Keep UI resources in XML and business logic in Kotlin classes with clear
+    package boundaries.
+  - Treat sensor/acoustic/thermal algorithms as estimates that require empirical
+    validation; do not present them as proven accurate without tests or data.
+  - Include permission, privacy, offline, and failure-mode behavior in specs for
+    any measurement or reporting feature.
+  - When implementation changes behavior, update or add focused unit tests where
+    feasible and run the relevant Gradle task when the environment supports it.
+
+rules:
+  proposal:
+    - Keep proposals concise and include user-facing value, affected modules, and non-goals.
+    - Call out privacy or regulatory implications when the change touches audio, storage, or reporting.
+  specs:
+    - Use testable SHALL-style requirements.
+    - Include degraded/offline and permission-denied behavior when relevant.
+  design:
+    - Prefer native Android APIs and existing project dependencies before introducing new libraries.
+    - Identify validation assumptions for measurement algorithms and model outputs.
+  tasks:
+    - Break work into small implementation steps that can be verified independently.
+    - Include build/test/verification tasks appropriate to the changed surface area.
