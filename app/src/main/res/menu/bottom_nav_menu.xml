@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@id/FirstFragment"
+        android:icon="@drawable/ic_nav_home"
+        android:title="@string/nav_home" />
+    <item
+        android:id="@id/TaskFragment"
+        android:icon="@drawable/ic_nav_tasks"
+        android:title="@string/nav_tasks" />
+    <item
+        android:id="@id/SuppliesFragment"
+        android:icon="@drawable/ic_nav_supplies"
+        android:title="@string/nav_supplies" />
+    <item
+        android:id="@id/SamplingFragment"
+        android:icon="@drawable/ic_nav_sampling"
+        android:title="@string/nav_sampling" />
+    <item
+        android:id="@id/MoreFragment"
+        android:icon="@drawable/ic_nav_more"
+        android:title="@string/nav_more" />
+</menu>

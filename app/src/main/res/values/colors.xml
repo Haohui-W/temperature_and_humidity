@@ -2,4 +2,18 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="dashboard_background">#F1F2F4</color>
+    <color name="dashboard_card">#FFFFFFFF</color>
+    <color name="parameter_card">#F5F6F6</color>
+    <color name="primary_teal">#006C8F</color>
+    <color name="primary_teal_dark">#00516B</color>
+    <color name="accent_blue">#4A90E2</color>
+    <color name="text_primary">#1F2933</color>
+    <color name="text_secondary">#6B7280</color>
+    <color name="text_muted">#8A94A3</color>
+    <color name="divider_soft">#E5E7EB</color>
+    <color name="launcher_background">#DDF6F3</color>
+    <color name="launcher_shadow">#25829F</color>
+    <color name="launcher_thermo">#FF5B6E</color>
+    <color name="launcher_water">#57A9FF</color>
 </resources>
