@@ -40,7 +40,16 @@ class ReportWorkflowTest {
         assertTrue(text.contains("点位：冷库 A"))
         assertTrue(text.contains("温度：25.2℃"))
         assertTrue(text.contains("湿度：61%RH"))
+        assertTrue(text.contains("气压：101.3 kPa"))
         assertTrue(text.contains("质控：质控通过"))
+    }
+
+    @Test
+    fun copyTextBuilder_outputsPressureFallbackWhenMissing() {
+        val builder = CopyTextBuilder(SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.CHINA))
+        val text = builder.build(record(pressureHpa = null)).content
+
+        assertTrue(text.contains("气压：-- kPa"))
     }
 
     private fun measurement(
@@ -48,6 +57,7 @@ class ReportWorkflowTest {
     ) = MeasurementResult(
         temperatureCelsius = 25.2,
         humidityRh = 61.0,
+        pressureHpa = 1_013.2,
         confidence = 0.82,
         source = EstimateSource.FUSED,
         sourceSummary = "融合",
@@ -56,11 +66,12 @@ class ReportWorkflowTest {
         isDegraded = false
     )
 
-    private fun record() = ReportRecord(
+    private fun record(pressureHpa: Double? = 1_013.2) = ReportRecord(
         id = "r1",
         pointName = "冷库 A",
         temperatureCelsius = 25.2,
         humidityRh = 61.0,
+        pressureHpa = pressureHpa,
         confidence = 0.82,
         qualitySummary = "质控通过",
         sourceSummary = "融合",

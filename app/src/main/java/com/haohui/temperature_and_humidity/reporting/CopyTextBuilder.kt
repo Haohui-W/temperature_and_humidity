@@ -15,6 +15,7 @@ class CopyTextBuilder(
             "点位：${record.pointName}",
             "温度：${record.displayTemperature()}",
             "湿度：${record.displayHumidity()}",
+            "气压：${record.displayPressure()}",
             "测量时间：$measuredAt",
             "置信度：${record.displayConfidence()}",
             "来源：${record.sourceSummary}",

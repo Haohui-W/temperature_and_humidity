@@ -9,7 +9,12 @@ import com.haohui.temperature_and_humidity.model.QualityResult
 class FusionEngine(
     private val qualityControl: QualityControl = QualityControl()
 ) {
-    fun fuse(acoustic: Estimate?, thermal: Estimate?, measuredAtMillis: Long): FusionOutcome {
+    fun fuse(
+        acoustic: Estimate?,
+        thermal: Estimate?,
+        measuredAtMillis: Long,
+        pressureHpa: Double? = null
+    ): FusionOutcome {
         val available = listOfNotNull(acoustic, thermal)
             .filter { it.isAvailable && it.confidence > 0.0 }
 
@@ -37,6 +42,7 @@ class FusionEngine(
         val result = MeasurementResult(
             temperatureCelsius = temperature,
             humidityRh = humidity,
+            pressureHpa = pressureHpa,
             confidence = confidence,
             source = source,
             sourceSummary = sourceSummary,

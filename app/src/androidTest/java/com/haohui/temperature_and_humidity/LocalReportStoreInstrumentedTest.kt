@@ -28,6 +28,7 @@ class LocalReportStoreInstrumentedTest {
         val saved = (result as ReportSaveResult.Success).record
         val loaded = store.get(saved.id)
         assertEquals("模拟器点位", loaded?.pointName)
+        assertEquals(1_013.2, loaded?.pressureHpa ?: 0.0, 0.001)
         assertEquals(ReportStatus.SAVED, loaded?.status)
 
         val copied = store.markCopied(saved.id)
@@ -37,6 +38,7 @@ class LocalReportStoreInstrumentedTest {
     private fun measurement() = MeasurementResult(
         temperatureCelsius = 24.0,
         humidityRh = 60.0,
+        pressureHpa = 1_013.2,
         confidence = 0.8,
         source = EstimateSource.FUSED,
         sourceSummary = "融合",

@@ -17,6 +17,7 @@ data class ReportRecord(
     val pointName: String,
     val temperatureCelsius: Double,
     val humidityRh: Double,
+    val pressureHpa: Double? = null,
     val confidence: Double,
     val qualitySummary: String,
     val sourceSummary: String,
@@ -28,6 +29,8 @@ data class ReportRecord(
     fun displayTemperature(): String = "%.1f℃".format(temperatureCelsius)
 
     fun displayHumidity(): String = "%.0f%%RH".format(humidityRh)
+
+    fun displayPressure(): String = pressureHpa?.let { "%.1f kPa".format(it / 10.0) } ?: "-- kPa"
 
     fun displayConfidence(): String = "%.0f%%".format(confidence * 100.0)
 }

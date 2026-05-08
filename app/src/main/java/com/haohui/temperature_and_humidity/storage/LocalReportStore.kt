@@ -24,6 +24,7 @@ class LocalReportStore(
             pointName = draft.pointName,
             temperatureCelsius = draft.measurement.temperatureCelsius,
             humidityRh = draft.measurement.humidityRh,
+            pressureHpa = draft.measurement.pressureHpa,
             confidence = draft.measurement.confidence,
             qualitySummary = draft.measurement.quality.message.ifBlank { "质控通过" },
             sourceSummary = draft.measurement.sourceSummary,
@@ -80,6 +81,7 @@ class LocalReportStore(
         encode(record.pointName),
         record.temperatureCelsius.toString(),
         record.humidityRh.toString(),
+        record.pressureHpa?.toString().orEmpty(),
         record.confidence.toString(),
         encode(record.qualitySummary),
         encode(record.sourceSummary),
@@ -91,19 +93,21 @@ class LocalReportStore(
 
     private fun deserialize(serialized: String): ReportRecord {
         val parts = serialized.split(DELIMITER)
-        require(parts.size == 11)
+        require(parts.size == 11 || parts.size == 12)
+        val hasPressure = parts.size == 12
         return ReportRecord(
             id = parts[0],
             pointName = decode(parts[1]),
             temperatureCelsius = parts[2].toDouble(),
             humidityRh = parts[3].toDouble(),
-            confidence = parts[4].toDouble(),
-            qualitySummary = decode(parts[5]),
-            sourceSummary = decode(parts[6]),
-            measuredAtMillis = parts[7].toLong(),
-            createdAtMillis = parts[8].toLong(),
-            updatedAtMillis = parts[9].toLong(),
-            status = ReportStatus.valueOf(parts[10])
+            pressureHpa = if (hasPressure) parts[4].toDoubleOrNull() else null,
+            confidence = parts[if (hasPressure) 5 else 4].toDouble(),
+            qualitySummary = decode(parts[if (hasPressure) 6 else 5]),
+            sourceSummary = decode(parts[if (hasPressure) 7 else 6]),
+            measuredAtMillis = parts[if (hasPressure) 8 else 7].toLong(),
+            createdAtMillis = parts[if (hasPressure) 9 else 8].toLong(),
+            updatedAtMillis = parts[if (hasPressure) 10 else 9].toLong(),
+            status = ReportStatus.valueOf(parts[if (hasPressure) 11 else 10])
         )
     }
 

@@ -7,6 +7,7 @@ import com.haohui.temperature_and_humidity.model.MeasurementSessionState
 class MeasurementService(
     private val acousticEstimator: AcousticEstimator,
     private val thermalEstimator: ThermalEstimator,
+    private val pressureReader: PressureReader = UnavailablePressureReader,
     private val fusionEngine: FusionEngine = FusionEngine(),
     private val clock: () -> Long = { System.currentTimeMillis() }
 ) {
@@ -29,8 +30,11 @@ class MeasurementService(
         }
         val thermal = thermalEstimator.estimate()
 
+        state = MeasurementSessionState.Running(MeasurementPhase.COLLECTING_SIGNALS, "正在读取气压")
+        val pressureHpa = pressureReader.readValidPressureHpa()
+
         state = MeasurementSessionState.Running(MeasurementPhase.ESTIMATING, "正在估算温湿度")
-        val outcome = fusionEngine.fuse(acoustic, thermal, clock())
+        val outcome = fusionEngine.fuse(acoustic, thermal, clock(), pressureHpa)
 
         state = MeasurementSessionState.Running(MeasurementPhase.QUALITY_CHECK, "正在执行质控")
         state = when (outcome) {

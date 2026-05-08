@@ -48,6 +48,21 @@ class FusionEngineTest {
     }
 
     @Test
+    fun fuse_preservesPressureWithoutChangingTemperatureHumidityOrConfidence() {
+        val acoustic = estimate(EstimateSource.ACOUSTIC, temperature = 20.0, humidity = 50.0, confidence = 0.8)
+        val thermal = estimate(EstimateSource.THERMAL, temperature = 30.0, humidity = 70.0, confidence = 0.2)
+
+        val outcome = engine.fuse(acoustic, thermal, measuredAtMillis = 100L, pressureHpa = 1_013.2)
+
+        assertTrue(outcome is FusionOutcome.Success)
+        val result = (outcome as FusionOutcome.Success).result
+        assertEquals(22.0, result.temperatureCelsius, 0.001)
+        assertEquals(54.0, result.humidityRh, 0.001)
+        assertEquals(0.5, result.confidence, 0.001)
+        assertEquals(1_013.2, result.pressureHpa ?: 0.0, 0.001)
+    }
+
+    @Test
     fun fuse_failsWhenNoSourceIsAvailable() {
         val outcome = engine.fuse(null, null, measuredAtMillis = 100L)
 

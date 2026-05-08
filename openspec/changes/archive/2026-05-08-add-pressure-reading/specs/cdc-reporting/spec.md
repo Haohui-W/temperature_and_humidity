@@ -1,22 +1,4 @@
-# cdc-reporting Specification
-
-## Purpose
-TBD - created by archiving change build-cdc-temp-humidity-mvp. Update Purpose after archive.
-## Requirements
-### Requirement: 点位名称采集与修正
-系统 SHALL 支持通过语音识别或手动输入采集点位名称，并在保存报告前允许用户修正点位名称。
-
-#### Scenario: 语音识别点位成功
-- **WHEN** 用户选择语音录入点位且系统识别出点位名称
-- **THEN** 系统 SHALL 将识别结果填入点位字段，并允许用户编辑
-
-#### Scenario: 语音识别不可用
-- **WHEN** 语音识别能力不可用、识别失败或用户不授权相关权限
-- **THEN** 系统 SHALL 提供手动输入点位名称的路径
-
-#### Scenario: 保存前校验点位
-- **WHEN** 用户尝试保存报告但点位名称为空
-- **THEN** 系统 SHALL 阻止保存并提示用户填写点位名称
+## MODIFIED Requirements
 
 ### Requirement: 报告草稿创建
 系统 SHALL 根据通过质控的测量结果和用户确认的点位名称创建本地报告草稿，并在气压可用时包含气压。
@@ -69,15 +51,3 @@ TBD - created by archiving change build-cdc-temp-humidity-mvp. Update Purpose af
 #### Scenario: 查看单条报告详情
 - **WHEN** 用户选择一条报告历史记录
 - **THEN** 系统 SHALL 展示该报告的完整字段和可复制文本
-
-### Requirement: 无 API 填报边界
-系统 SHALL NOT 在 MVP 阶段自动调用疾控填报 API、自动提交报告或自动填充第三方系统。
-
-#### Scenario: 保存报告后不自动提交
-- **WHEN** 用户保存报告
-- **THEN** 系统 SHALL 仅保存本地报告并提供复制文本，SHALL NOT 发起网络提交
-
-#### Scenario: 用户复制报告后不声称已提交
-- **WHEN** 用户复制待填报文本
-- **THEN** 系统 SHALL 将状态记录为“已复制”，并 SHALL NOT 将状态展示为“已提交”
-

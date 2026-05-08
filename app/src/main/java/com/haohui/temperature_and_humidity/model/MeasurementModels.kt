@@ -59,6 +59,7 @@ data class QualityResult(
 data class MeasurementResult(
     val temperatureCelsius: Double,
     val humidityRh: Double,
+    val pressureHpa: Double? = null,
     val confidence: Double,
     val source: EstimateSource,
     val sourceSummary: String,
@@ -70,6 +71,10 @@ data class MeasurementResult(
     fun displayTemperature(): String = "%.1f℃".format(temperatureCelsius)
 
     fun displayHumidity(): String = "%.0f%%RH".format(humidityRh)
+
+    fun displayPressureValue(): String = pressureHpa?.let { "%.1f".format(it / 10.0) } ?: "--"
+
+    fun displayPressure(): String = "${displayPressureValue()} kPa"
 
     fun displayConfidence(): String = "%.0f%%".format(confidence * 100.0)
 }

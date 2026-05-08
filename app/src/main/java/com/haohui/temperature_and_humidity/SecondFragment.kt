@@ -63,7 +63,7 @@ class SecondFragment : Fragment() {
         binding.buttonCopyLatest.isEnabled = true
         binding.textHistory.text = records.joinToString("\n\n") { record ->
             val time = dateFormat.format(Date(record.createdAtMillis))
-            "${record.pointName}  ${record.displayTemperature()}  ${record.displayHumidity()}\n$time  ${record.status.label}"
+            "${record.pointName}  ${record.displayTemperature()}  ${record.displayHumidity()}  ${record.displayPressure()}\n$time  ${record.status.label}"
         }
         latestRecord?.let {
             binding.textCopyPreview.text = copyTextBuilder.build(it).content

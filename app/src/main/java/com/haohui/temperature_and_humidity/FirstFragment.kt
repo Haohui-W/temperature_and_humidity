@@ -18,6 +18,7 @@ import androidx.navigation.fragment.findNavController
 import com.google.android.material.snackbar.Snackbar
 import com.haohui.temperature_and_humidity.databinding.FragmentFirstBinding
 import com.haohui.temperature_and_humidity.measurement.AndroidAcousticEstimator
+import com.haohui.temperature_and_humidity.measurement.AndroidPressureReader
 import com.haohui.temperature_and_humidity.measurement.AndroidThermalEstimator
 import com.haohui.temperature_and_humidity.measurement.MeasurementService
 import com.haohui.temperature_and_humidity.model.MeasurementResult
@@ -112,7 +113,8 @@ class FirstFragment : Fragment() {
         executor.execute {
             val service = MeasurementService(
                 acousticEstimator = AndroidAcousticEstimator(requireContext().applicationContext),
-                thermalEstimator = AndroidThermalEstimator(requireContext().applicationContext)
+                thermalEstimator = AndroidThermalEstimator(requireContext().applicationContext),
+                pressureReader = AndroidPressureReader(requireContext().applicationContext)
             )
             val state = service.runMeasurement(allowAcoustic)
             requireActivity().runOnUiThread {
@@ -135,6 +137,7 @@ class FirstFragment : Fragment() {
         latestMeasurement = result
         binding.textTemperature.text = result.displayTemperature()
         binding.textHumidity.text = result.displayHumidity()
+        binding.textPressure.text = result.displayPressureValue()
         binding.textConfidence.text = "置信度：${result.displayConfidence()}"
         binding.textSource.text = "来源：${result.sourceSummary}"
         binding.textQuality.text = "质控：${result.quality.message.ifBlank { "质控通过" }}"
