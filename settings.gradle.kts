@@ -9,6 +9,7 @@ pluginManagement {
         }
         mavenCentral()
         gradlePluginPortal()
+        maven("https://repo.nju.edu.cn/repository/maven-public")
     }
 }
 plugins {
@@ -19,6 +20,7 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
+        maven("https://repo.nju.edu.cn/repository/maven-public")
     }
 }
 
