@@ -40,7 +40,7 @@ class AndroidAcousticEstimator(
         val (left, right) = split
         return try {
             val signalDiagnostics = StereoSignalAnalyzer.analyze(left, right)
-            val baseInputSummary = "声学采样 ${sample.frameCount} 帧，${signalDiagnostics.compactSummary()}"
+            val baseInputSummary = "声学采样 ${sample.frameCount} 帧，音频源 ${sample.audioSourceName}，${signalDiagnostics.compactSummary()}"
             val tdoa = tdoaEstimator.estimate(left, right, sample.sampleRate)
                 ?: return legacyFallback(
                     left = left,

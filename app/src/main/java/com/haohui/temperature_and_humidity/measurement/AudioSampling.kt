@@ -4,16 +4,21 @@ import android.annotation.SuppressLint
 import android.media.AudioFormat
 import android.media.AudioRecord
 import android.media.MediaRecorder
+import android.os.Build
 import kotlin.math.abs
 import kotlin.math.sqrt
 
 data class StereoPcmSample(
     val buffer: ShortArray,
     val readSamples: Int,
-    val sampleRate: Int
+    val sampleRate: Int,
+    val audioSource: Int = MediaRecorder.AudioSource.UNPROCESSED
 ) {
     val frameCount: Int
         get() = readSamples / CHANNEL_COUNT
+
+    val audioSourceName: String
+        get() = AudioSourceNames.displayName(audioSource)
 
     companion object {
         const val CHANNEL_COUNT = 2
@@ -83,7 +88,7 @@ class AudioSampler(
                 }
                 totalRead += read
             }
-            if (totalRead > 0) StereoPcmSample(buffer, totalRead, sampleRate) else null
+            if (totalRead > 0) StereoPcmSample(buffer, totalRead, sampleRate, audioSource) else null
         } catch (_: RuntimeException) {
             null
         } finally {
@@ -98,11 +103,25 @@ class AudioSampler(
 
     private companion object {
         const val BYTES_PER_SAMPLE = 2
-        val AUDIO_SOURCES = intArrayOf(
-            MediaRecorder.AudioSource.UNPROCESSED,
-            MediaRecorder.AudioSource.MIC,
-            MediaRecorder.AudioSource.DEFAULT
-        )
+        val AUDIO_SOURCES: IntArray = buildList {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                add(MediaRecorder.AudioSource.UNPROCESSED)
+            }
+            add(MediaRecorder.AudioSource.VOICE_RECOGNITION)
+            add(MediaRecorder.AudioSource.VOICE_COMMUNICATION)
+            add(MediaRecorder.AudioSource.MIC)
+        }.distinct().toIntArray()
+    }
+}
+
+private object AudioSourceNames {
+    fun displayName(audioSource: Int): String = when (audioSource) {
+        MediaRecorder.AudioSource.UNPROCESSED -> "UNPROCESSED"
+        MediaRecorder.AudioSource.VOICE_RECOGNITION -> "VOICE_RECOGNITION"
+        MediaRecorder.AudioSource.VOICE_COMMUNICATION -> "VOICE_COMMUNICATION"
+        MediaRecorder.AudioSource.MIC -> "MIC"
+        MediaRecorder.AudioSource.DEFAULT -> "DEFAULT"
+        else -> "source=$audioSource"
     }
 }
 
