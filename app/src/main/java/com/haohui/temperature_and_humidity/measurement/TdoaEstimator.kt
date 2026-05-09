@@ -1,6 +1,7 @@
 package com.haohui.temperature_and_humidity.measurement
 
 import kotlin.math.abs
+import kotlin.math.PI
 import kotlin.math.sqrt
 
 data class TdoaResult(
@@ -59,47 +60,89 @@ class KotlinReferenceTdoaEstimator : TdoaEstimator {
         if (usableLength <= 1 || sampleRate <= 0) {
             return null
         }
+        val processedLeft = TdoaSignalPreprocessor.highPassNormalize(left, usableLength, sampleRate)
+        val processedRight = TdoaSignalPreprocessor.highPassNormalize(right, usableLength, sampleRate)
         val boundedLag = minOf(maxLag, usableLength - 1)
         var bestLag = 0
         var bestCorrelation = Double.NEGATIVE_INFINITY
-        var bestQuality = 0.0
 
         for (lag in -boundedLag..boundedLag) {
-            var corr = 0.0
-            var leftEnergy = 0.0
-            var rightEnergy = 0.0
-            for (i in 0 until usableLength) {
-                val rightIndex = i + lag
-                if (rightIndex !in 0 until usableLength) {
-                    continue
-                }
-                val l = left[i].toDouble()
-                val r = right[rightIndex].toDouble()
-                corr += l * r
-                leftEnergy += l * l
-                rightEnergy += r * r
-            }
-            if (leftEnergy <= 0.0 || rightEnergy <= 0.0) {
+            val startLeft = if (lag < 0) -lag else 0
+            val startRight = if (lag > 0) lag else 0
+            val validLength = usableLength - abs(lag)
+            if (validLength < MIN_OVERLAP_SAMPLES) {
                 continue
             }
-            val normalized = corr / sqrt(leftEnergy * rightEnergy)
-            val quality = abs(normalized).coerceIn(0.0, 1.0)
-            if (quality > bestQuality || normalized > bestCorrelation) {
+
+            var meanLeft = 0.0
+            var meanRight = 0.0
+            for (i in 0 until validLength) {
+                meanLeft += processedLeft[startLeft + i]
+                meanRight += processedRight[startRight + i]
+            }
+            meanLeft /= validLength.toDouble()
+            meanRight /= validLength.toDouble()
+
+            var cross = 0.0
+            var leftVariance = 0.0
+            var rightVariance = 0.0
+            for (i in 0 until validLength) {
+                val l = processedLeft[startLeft + i] - meanLeft
+                val r = processedRight[startRight + i] - meanRight
+                cross += l * r
+                leftVariance += l * l
+                rightVariance += r * r
+            }
+            if (leftVariance <= 0.0 || rightVariance <= 0.0) {
+                continue
+            }
+            val normalized = cross / sqrt(leftVariance * rightVariance)
+            if (normalized > bestCorrelation) {
                 bestLag = lag
                 bestCorrelation = normalized
-                bestQuality = quality
             }
         }
 
-        if (!bestCorrelation.isFinite() || bestQuality <= 0.0) {
+        if (!bestCorrelation.isFinite() || bestCorrelation < MIN_CORRELATION_PEAK) {
             return null
         }
         return TdoaResult(
             sampleOffset = bestLag,
             deltaSeconds = bestLag.toDouble() / sampleRate.toDouble(),
             correlationPeak = bestCorrelation,
-            inputQuality = bestQuality,
+            inputQuality = bestCorrelation.coerceIn(0.0, 1.0),
             isNative = false
         )
     }
+
+    private companion object {
+        const val MIN_OVERLAP_SAMPLES = 100
+        const val MIN_CORRELATION_PEAK = 0.7
+    }
+}
+
+private object TdoaSignalPreprocessor {
+    fun highPassNormalize(input: ShortArray, usableLength: Int, sampleRate: Int): DoubleArray {
+        val alpha = 1.0 / (1.0 + 2.0 * PI * HIGH_PASS_CUTOFF_HZ / sampleRate.toDouble())
+        val output = DoubleArray(usableLength)
+        var previousInput = 0.0
+        var peak = 0.0
+        for (index in 0 until usableLength) {
+            val currentInput = input[index].toDouble()
+            val filtered = alpha * (currentInput - previousInput)
+            output[index] = filtered
+            peak = maxOf(peak, abs(filtered))
+            previousInput = currentInput
+        }
+        if (peak <= MIN_NORMALIZATION_PEAK) {
+            return output
+        }
+        for (index in output.indices) {
+            output[index] /= peak
+        }
+        return output
+    }
+
+    private const val HIGH_PASS_CUTOFF_HZ = 500.0
+    private const val MIN_NORMALIZATION_PEAK = 1e-6
 }

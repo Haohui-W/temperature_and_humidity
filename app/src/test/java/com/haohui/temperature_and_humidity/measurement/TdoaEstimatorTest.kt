@@ -22,6 +22,30 @@ class TdoaEstimatorTest {
     }
 
     @Test
+    fun kotlinReferenceEstimator_detectsOffsetWithSharedDcBias() {
+        val left = ShortArray(512) { 1_000 }
+        val right = ShortArray(512) { 1_000 }
+        left[160] = 12_000
+        right[167] = 12_000
+
+        val result = KotlinReferenceTdoaEstimator().estimate(left, right, sampleRate = 48_000)
+
+        assertNotNull(result)
+        assertEquals(7, result?.sampleOffset)
+        assertTrue((result?.correlationPeak ?: 0.0) >= 0.7)
+    }
+
+    @Test
+    fun kotlinReferenceEstimator_rejectsLowCorrelationSignal() {
+        val left = ShortArray(256) { index -> ((index * 37) % 201 - 100).toShort() }
+        val right = ShortArray(256) { index -> ((index * 19 + 11) % 201 - 100).toShort() }
+
+        val result = KotlinReferenceTdoaEstimator().estimate(left, right, sampleRate = 48_000)
+
+        assertNull(result)
+    }
+
+    @Test
     fun splitter_deinterleavesStereoBuffer() {
         val sample = StereoPcmSample(
             buffer = shortArrayOf(1, 10, 2, 20, 3, 30),
